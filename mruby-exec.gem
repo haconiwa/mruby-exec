@@ -1,6 +1,6 @@
 name: mruby-exec
 description: Exec class
 author: Uchio Kondo
-website: https://github.com/udzura/mruby-exec
+website: https://github.com/haconiwa/mruby-exec
 protocol: git
-repository: https://github.com/udzura/mruby-exec.git
+repository: https://github.com/haconiwa/mruby-exec.git
