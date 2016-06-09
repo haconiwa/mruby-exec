@@ -18,8 +18,11 @@ end
 ## example
 
 ```ruby
-Exec.execve("/bin/bash")
+Exec.execv("/bin/bash")
 #=> The process will become bash
+
+# Also you can pass more than 1 params
+Exec.execv("/bin/bash", "-l", "-c", "echo Hello exec")
 ```
 
 ## License
