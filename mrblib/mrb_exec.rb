@@ -1,5 +1,5 @@
-class Exec
-  def bye
-    self.hello + " bye"
+module Kernel
+  def exec(*a)
+    Exec.exec(*a)
   end
 end
