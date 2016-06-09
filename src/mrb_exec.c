@@ -28,21 +28,28 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   mrb_value *mrb_argv;
   mrb_int argc;
   char **argv;
+  mrb_value strv;
+  char *buf;
   int i, j;
+
   mrb_get_args(mrb, "*", &mrb_argv, &argc);
   if(argc < 1) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
     return mrb_nil_value();
   }
 
+  argv = (char **)malloc(sizeof(char *) * (argc + 1));
+
   for(i = 0; i < argc; i++) {
-    *argv = mrb_str_to_cstr(mrb, mrb_argv[i]);
+    strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
+    buf = mrb_string_value_cstr(mrb, &strv);
+    *argv = buf;
     argv++;
   }
   *argv = NULL;
 
-  // move to start of array
-  argv = argv - i;
+  // return to the top of array
+  argv -= i;
 
   for(j = 0; j < argc + 1; j++) {
     _DEBUGP("[mruby-exec] argv(%i): %s\n", j, argv[j]);
