@@ -1,6 +1,6 @@
 # mruby-exec   [![Build Status](https://travis-ci.org/haconiwa/mruby-exec.svg?branch=master)](https://travis-ci.org/haconiwa/mruby-exec)
 
-Small `execve(2)` wrapper
+Small `execv/execve` wrapper
 
 ## install by mrbgems
 
