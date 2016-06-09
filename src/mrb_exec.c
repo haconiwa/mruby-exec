@@ -12,6 +12,7 @@
 
 #include "mruby.h"
 #include "mruby/string.h"
+#include "mruby/error.h"
 #include "mrb_exec.h"
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
@@ -30,6 +31,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   int i, j;
   mrb_get_args(mrb, "*", &mrb_argv, &argc);
   if(argc < 1) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
     return mrb_nil_value();
   }
 
@@ -49,6 +51,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   execv(argv[0], argv);
 
   perror("execv");
+  mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
 }
 
