@@ -42,7 +42,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 
   for(i = 0; i < argc; i++) {
     strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
-    buf = mrb_string_value_cstr(mrb, &strv);
+    buf = (char *)mrb_string_value_cstr(mrb, &strv);
     *argv = buf;
     argv++;
   }
