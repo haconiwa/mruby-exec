@@ -57,7 +57,6 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 
   execv(argv[0], argv);
 
-  perror("execv");
   mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
 }
