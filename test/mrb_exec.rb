@@ -2,16 +2,11 @@
 ## Exec Test
 ##
 
-assert("Exec#hello") do
-  t = Exec.new "hello"
-  assert_equal("hello", t.hello)
+assert("Exec#exec") do
+  assert_true(Exec.respond_to? :exec)
+  assert_true(Exec.respond_to? :execv)
 end
 
-assert("Exec#bye") do
-  t = Exec.new "hello"
-  assert_equal("hello bye", t.bye)
-end
-
-assert("Exec.hi") do
-  assert_equal("hi!!", Exec.hi)
+assert("Kernel#exec") do
+  assert_true(Object.respond_to? :exec)
 end
