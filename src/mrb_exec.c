@@ -11,7 +11,9 @@
 #include <unistd.h>
 
 #include "mruby.h"
+#include "mruby/data.h"
 #include "mruby/string.h"
+#include "mruby/array.h"
 #include "mruby/error.h"
 #include "mrb_exec.h"
 
@@ -23,39 +25,49 @@
 #define _DEBUGP 1 ? (void) 0 : printf
 #endif
 
+typedef struct {
+  char *dummy;
+} mrb_exec_data;
+
+static const struct mrb_data_type mrb_exec_data_type = {
+  "mrb_exec_data", mrb_free,
+};
+
 static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 {
   mrb_value *mrb_argv;
-  mrb_int argc;
-  char **argv;
+  mrb_int argc_;
+  char **argv_;
   mrb_value strv;
   char *buf;
   int i, j;
 
-  mrb_get_args(mrb, "*", &mrb_argv, &argc);
-  if(argc < 1) {
+  mrb_get_args(mrb, "*", &mrb_argv, &argc_);
+  if(argc_ < 1) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
     return mrb_nil_value();
   }
 
-  argv = (char **)malloc(sizeof(char *) * (argc + 1));
+  argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc_ + 1));
 
-  for(i = 0; i < argc; i++) {
+  int ai = mrb_gc_arena_save(mrb);
+  for(i = 0; i < argc_; i++) {
     strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
     buf = (char *)mrb_string_value_cstr(mrb, &strv);
-    *argv = buf;
-    argv++;
+    *argv_ = buf;
+    argv_++;
   }
-  *argv = NULL;
+  *argv_ = NULL;
 
   // return to the top of array
-  argv -= i;
+  argv_ -= i;
 
-  for(j = 0; j < argc + 1; j++) {
-    _DEBUGP("[mruby-exec] argv(%i): %s\n", j, argv[j]);
+  for(j = 0; j < argc_ + 1; j++) {
+    _DEBUGP("[mruby-exec] argv_(%i): %s\n", j, argv_[j]);
   }
 
-  execv(argv[0], argv);
+  mrb_gc_arena_restore(mrb, ai);
+  execv(argv_[0], argv_);
 
   mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
@@ -63,10 +75,11 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 
 void mrb_mruby_exec_gem_init(mrb_state *mrb)
 {
-    struct RClass *e;
-    e = mrb_define_class(mrb, "Exec", mrb->object_class);
-    mrb_define_class_method(mrb, e, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    mrb_define_class_method(mrb, e, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
+    struct RClass *ex;
+
+    ex = mrb_define_module(mrb, "Exec");
+    mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+    //mrb_define_class_method(mrb, e, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
     DONE;
 }
 
