@@ -17,6 +17,7 @@ end
 
 desc "cleanup"
 task :clean do
+  exit 0 unless File.directory?('mruby')
   sh "cd mruby && rake deep_clean"
 end
 

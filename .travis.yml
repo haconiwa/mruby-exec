@@ -13,6 +13,9 @@ compiler:
 script:
   - rake clean
   - rake test
+branches:
+  only:
+    - master
 notifications:
   slack:
     secure: Hw9zj9edy9xUNSW+7/9XSvhdwe1t3KgaK34Pze81nQzaTVuOO0uyGvrn1OtEDroREbgf5dD1BHm5e4HiMFo83WsapMc/XoU7oiF5aN8eiMqDpMNtx9Xtn0v5BHHqeBsLQMsM819RR5CseR4vf+dtJq2tM1g3d/KTwOWNL4b0FrU4+C1EPq9m3iRX1SdZOkV3k3Xkn6dfgb4dqzjJD3HYZCbZLuKdLKEv9YVI0X/VmnoKb9e8CJLHe7e41b3W2zfSMqMbctzt5PQKWdd6dZ0phVxgmGGYEjIqKF8Jf/l9Q/JQMQAqIvTj3ETBq3ur3r26pZIkh7irBLRq4WdzTHPzkR2AmIDpKazT4HEm5o3KrH7pYQN48fB+z1kioYhrtRJUbWw9KpnBtnaDnfMACCb7XgGsELywFGNqPmgimRDzKKAhwUZLMgAGqZImWD+fKG/RBRGz1CYBvXbSP4nGlL5vPcD+7GEd53pap/FV01GoDM1Q5mEy9R4rqBEItdYNOcbf5ZIRq4KueOUFPci6mjwS+XDAlI50dSmP1mKOXQQtOTbDxatsoancR5s/8Bc4gjcMULgUjfmvETwiqnDM3cHIpj+IT/69H8Ms3tJeEQu2UG20SM6pW3zBB2tWUWKJECs31nv6grZ8x+m4wkn2u/kO0zJtq66yhIQbtNuM8cAeTNI=
