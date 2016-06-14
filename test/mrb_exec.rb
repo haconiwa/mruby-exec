@@ -2,16 +2,16 @@
 ## Exec Test
 ##
 
-assert("Exec#hello") do
-  t = Exec.new "hello"
-  assert_equal("hello", t.hello)
+assert("Exec#exec") do
+  p = Process.fork { Exec.exec "/bin/sleep", "0.1" }
+  p, status = Process.waitpid2 p
+  assert_true(p.is_a?(Integer))
+  assert_true(status.success?)
 end
 
-assert("Exec#bye") do
-  t = Exec.new "hello"
-  assert_equal("hello bye", t.bye)
-end
-
-assert("Exec.hi") do
-  assert_equal("hi!!", Exec.hi)
+assert("Kernel#exec") do
+  p = Process.fork { exec "/bin/sleep", "0.1" }
+  p, status = Process.waitpid2 p
+  assert_true(p.is_a?(Integer))
+  assert_true(status.success?)
 end

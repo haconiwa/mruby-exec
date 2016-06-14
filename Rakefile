@@ -1,4 +1,4 @@
-MRUBY_CONFIG=File.expand_path(ENV["MRUBY_CONFIG"] || "build_config.rb")
+MRUBY_CONFIG=File.expand_path(ENV["MRUBY_CONFIG"] || ".travis-build_config.rb")
 MRUBY_VERSION=ENV["MRUBY_VERSION"] || "1.2.0"
 
 file :mruby do
