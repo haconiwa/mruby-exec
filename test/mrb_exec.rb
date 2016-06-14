@@ -3,15 +3,10 @@
 ##
 
 assert("Exec#exec") do
-  p = Process.fork { Exec.exec "/bin/sleep", "0.1" }
-  p, status = Process.waitpid2 p
-  assert_true(p.is_a?(Integer))
-  assert_true(status.success?)
+  assert_true(Exec.respond_to? :exec)
+  assert_true(Exec.respond_to? :execv)
 end
 
 assert("Kernel#exec") do
-  p = Process.fork { exec "/bin/sleep", "0.1" }
-  p, status = Process.waitpid2 p
-  assert_true(p.is_a?(Integer))
-  assert_true(status.success?)
+  assert_true(Object.respond_to? :exec)
 end
