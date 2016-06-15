@@ -10,9 +10,15 @@ language: c
 compiler:
   - gcc
   - clang
+env:
+  - MRUBY_VERSION=1.2.0
+  - MRUBY_VERSION=master
 script:
   - rake clean
   - rake test
+matrix:
+  allow_failures:
+    - env: MRUBY_VERSION=master
 branches:
   only:
     - master

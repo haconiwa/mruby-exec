@@ -40,7 +40,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   char **argv_;
   mrb_value strv;
   char *buf;
-  int i, j;
+  int i, j, ai;
 
   mrb_get_args(mrb, "*", &mrb_argv, &argc_);
   if(argc_ < 1) {
@@ -50,7 +50,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 
   argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc_ + 1));
 
-  int ai = mrb_gc_arena_save(mrb);
+  ai = mrb_gc_arena_save(mrb);
   for(i = 0; i < argc_; i++) {
     strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
     buf = (char *)mrb_string_value_cstr(mrb, &strv);
@@ -81,7 +81,7 @@ void mrb_mruby_exec_gem_init(mrb_state *mrb)
     mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
     mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
 
-    mrb_define_class_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+    mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
     DONE;
 }
 
