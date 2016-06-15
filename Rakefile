@@ -3,8 +3,10 @@ MRUBY_VERSION=ENV["MRUBY_VERSION"] || "1.2.0"
 
 file :mruby do
   cmd =  "git clone --depth=1 git://github.com/mruby/mruby.git"
-  cmd << " && cd mruby"
-  cmd << " && git fetch --tags && git checkout $(git rev-parse #{MRUBY_VERSION})" if MRUBY_VERSION != 'master'
+  if MRUBY_VERSION != 'master'
+    cmd << " && cd mruby"
+    cmd << " && git fetch --tags && git checkout $(git rev-parse #{MRUBY_VERSION})"
+  end
   sh cmd
 end
 
