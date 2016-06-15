@@ -3,5 +3,4 @@ MRuby::Gem::Specification.new('mruby-exec') do |spec|
   spec.authors = 'Uchio Kondo'
 
   spec.add_test_dependency('mruby-process', :github => 'iij/mruby-process')
-  spec.add_test_dependency('mruby-print')
 end

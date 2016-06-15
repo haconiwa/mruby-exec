@@ -79,7 +79,9 @@ void mrb_mruby_exec_gem_init(mrb_state *mrb)
 
     ex = mrb_define_module(mrb, "Exec");
     mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    //mrb_define_class_method(mrb, e, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
+    mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
+
+    mrb_define_class_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
     DONE;
 }
 
