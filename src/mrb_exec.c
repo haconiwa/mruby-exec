@@ -26,41 +26,51 @@
 #define _DEBUGP 1 ? (void) 0 : printf
 #endif
 
-static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
+static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char **result)
 {
-  mrb_value *mrb_argv;
-  mrb_int argc_;
-  char **argv_;
   mrb_value strv;
   char *buf;
-  int i, j, ai;
+  int i;
 
-  mrb_get_args(mrb, "*", &mrb_argv, &argc_);
-  if(argc_ < 1) {
-    mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
-    return mrb_nil_value();
+  if(len < 1) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "must have at least 1 argument");
+    return -1;
   }
 
-  argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc_ + 1));
-
-  ai = mrb_gc_arena_save(mrb);
-  for(i = 0; i < argc_; i++) {
-    strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
+  int ai = mrb_gc_arena_save(mrb);
+  for(i = 0; i < len; i++) {
+    strv = mrb_convert_type(mrb, array[i], MRB_TT_STRING, "String", "to_str");
     buf = (char *)mrb_string_value_cstr(mrb, &strv);
-    *argv_ = buf;
-    argv_++;
+    *result = buf;
+    result++;
   }
-  *argv_ = NULL;
+  *result = NULL;
 
   // return to the top of array
-  argv_ -= i;
+  result -= i;
 
-  for(j = 0; j < argc_ + 1; j++) {
-    _DEBUGP("[mruby-exec] argv_(%i): %s\n", j, argv_[j]);
+  for(int j = 0; j < len + 1; j++) {
+    _DEBUGP("[mruby-exec] result(%i): %s\n", j, result[j]);
   }
 
   mrb_gc_arena_restore(mrb, ai);
-  execv(argv_[0], argv_);
+  return 0;
+}
+
+static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
+{
+  mrb_value *mrb_argv;
+  mrb_int len;
+  char **result;
+
+  mrb_get_args(mrb, "*", &mrb_argv, &len);
+  result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
+
+  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+    mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
+  }
+
+  execv(result[0], result);
 
   mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
