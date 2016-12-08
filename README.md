@@ -9,9 +9,9 @@ Small `execv/execve` wrapper
 ```ruby
 MRuby::Build.new do |conf|
 
-    # ... (snip) ...
+  # ... (snip) ...
 
-    conf.gem :github => 'haconiwa/mruby-exec'
+  conf.gem :github => 'haconiwa/mruby-exec'
 end
 ```
 
@@ -23,6 +23,14 @@ Exec.execv("/bin/bash")
 
 # Also you can pass more than 1 params
 Exec.execv("/bin/bash", "-l", "-c", "echo Hello exec")
+```
+
+```ruby
+Exec.execve({"FOO" => "bar"}, "/bin/bash", "-l")
+
+# ... or
+# env cleanup
+Exec.execve({}, "/bin/bash", "-l")
 ```
 
 ## License

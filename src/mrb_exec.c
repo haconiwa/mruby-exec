@@ -6,16 +6,19 @@
 ** See Copyright Notice in LICENSE
 */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "mruby.h"
-#include "mruby/data.h"
-#include "mruby/string.h"
-#include "mruby/array.h"
-#include "mruby/error.h"
+#include <mruby.h>
+#include <mruby/data.h>
+#include <mruby/string.h>
+#include <mruby/array.h>
+#include <mruby/hash.h>
+#include <mruby/error.h>
 #include "mrb_exec.h"
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
@@ -26,94 +29,114 @@
 #define _DEBUGP 1 ? (void) 0 : printf
 #endif
 
-typedef struct {
-  char *dummy;
-} mrb_exec_data;
+static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char **result)
+{
+  mrb_value strv;
+  char *buf;
+  int i;
 
-static const struct mrb_data_type mrb_exec_data_type = {
-  "mrb_exec_data", mrb_free,
-};
+  if(len < 1) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "must have at least 1 argument");
+    return -1;
+  }
+
+  int ai = mrb_gc_arena_save(mrb);
+  for(i = 0; i < len; i++) {
+    strv = mrb_convert_type(mrb, array[i], MRB_TT_STRING, "String", "to_str");
+    buf = (char *)mrb_string_value_cstr(mrb, &strv);
+    *result = buf;
+    result++;
+  }
+  *result = NULL;
+
+  // return to the top of array
+  result -= i;
+
+  for(int j = 0; j < len + 1; j++) {
+    _DEBUGP("[mruby-exec] result(%i): %s\n", j, result[j]);
+  }
+
+  mrb_gc_arena_restore(mrb, ai);
+  return 0;
+}
 
 static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 {
   mrb_value *mrb_argv;
-  mrb_int argc_;
-  char **argv_;
-  mrb_value strv;
-  char *buf;
-  int i, j, ai;
+  mrb_int len;
+  char **result;
 
-  mrb_get_args(mrb, "*", &mrb_argv, &argc_);
-  if(argc_ < 1) {
-    mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
-    return mrb_nil_value();
+  mrb_get_args(mrb, "*", &mrb_argv, &len);
+  result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
+
+  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+    mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
-  argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc_ + 1));
-
-  ai = mrb_gc_arena_save(mrb);
-  for(i = 0; i < argc_; i++) {
-    strv = mrb_convert_type(mrb, mrb_argv[i], MRB_TT_STRING, "String", "to_str");
-    buf = (char *)mrb_string_value_cstr(mrb, &strv);
-    *argv_ = buf;
-    argv_++;
-  }
-  *argv_ = NULL;
-
-  // return to the top of array
-  argv_ -= i;
-
-  for(j = 0; j < argc_ + 1; j++) {
-    _DEBUGP("[mruby-exec] argv_(%i): %s\n", j, argv_[j]);
-  }
-
-  mrb_gc_arena_restore(mrb, ai);
-  execv(argv_[0], argv_);
+  execv(result[0], result);
 
   mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
 }
 
-static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
+static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
 {
-  mrb_value argv;
-  int argc;
-  char *procname, *execname;
-  char **argv_;
-  mrb_value strv;
-  char *buf;
-  int i, j, ai;
+  mrb_value mrb_env;
+  mrb_value *mrb_argv;
+  mrb_int len, env_len;
+  char **result, **envp;
+  int i;
 
-  mrb_get_args(mrb, "zA", &procname, &argv);
-  argc = RARRAY_LEN( argv );
-  if(argc < 1) {
-    mrb_raise(mrb, E_ARGUMENT_ERROR, "exec must have at least 1 argument");
-    return mrb_nil_value();
+  mrb_get_args(mrb, "H*", &mrb_env, &mrb_argv, &len);
+  result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
+
+  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+    mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
-  argv_ = (char **)mrb_malloc(mrb, sizeof(char *) * (argc + 1));
+  int ai = mrb_gc_arena_save(mrb);
+  mrb_value keys = mrb_hash_keys(mrb, mrb_env);
+  env_len = RARRAY_LEN(keys);
+  envp = (char **)mrb_malloc(mrb, sizeof(char *) * (env_len + 1));
 
-  ai = mrb_gc_arena_save(mrb);
-  for(i = 0; i < argc; i++) {
-    strv = mrb_convert_type(mrb, mrb_ary_ref( mrb, argv, i ), MRB_TT_STRING, "String", "to_str");
-    buf = (char *)mrb_string_value_cstr(mrb, &strv);
-    *argv_ = buf;
-    argv_++;
+  for (i = 0; i < env_len; ++i) {
+    mrb_value key = mrb_ary_ref(mrb, keys, i);
+    mrb_value value = mrb_hash_get(mrb, mrb_env, key);
+    mrb_value strv = mrb_convert_type(mrb, value, MRB_TT_STRING, "String", "to_str");
+    asprintf(envp, "%s=%s", mrb_string_value_cstr(mrb, &key), mrb_string_value_cstr(mrb, &strv));
+    envp++;
   }
-  *argv_ = NULL;
-
-  // return to the top of array
-  argv_ -= i;
-
-  for(j = 0; j < argc + 1; j++) {
-    _DEBUGP("[mruby-exec] argv_(%i): %s\n", j, argv_[j]);
-  }
-
+  *envp = NULL;
+  envp -= i;
   mrb_gc_arena_restore(mrb, ai);
 
-  execname = strdup(argv_[0]);
-  argv_[0] = procname;
-  execv(execname, argv_);
+  for(int j = 0; j < env_len + 1; j++) {
+    _DEBUGP("[mruby-exec] envp(%i): %s\n", j, envp[j]);
+  }
+
+  execve(result[0], result, envp);
+
+  mrb_sys_fail(mrb, "execve failed");
+  return mrb_nil_value();
+}
+
+static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
+{
+  mrb_value *argv;
+  mrb_int len;
+  char *procname, *execname;
+  char **result;
+
+  mrb_get_args(mrb, "z*", &procname, &argv, &len);
+  result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
+
+  if(mrb_value_to_strv(mrb, argv, len, result) < 0){
+    mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
+  }
+
+  execname = strdup(result[0]);
+  result[0] = procname;
+  execv(execname, result);
 
   mrb_sys_fail(mrb, "execv failed");
   return mrb_nil_value();
@@ -121,15 +144,17 @@ static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
 
 void mrb_mruby_exec_gem_init(mrb_state *mrb)
 {
-    struct RClass *ex;
+  struct RClass *ex;
 
-    ex = mrb_define_module(mrb, "Exec");
-    mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
-    mrb_define_class_method(mrb, ex, "exec_override_procname", mrb_exec_exec_override_procname, MRB_ARGS_REQ(2));
+  ex = mrb_define_module(mrb, "Exec");
+  mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+  mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
+  mrb_define_class_method(mrb, ex, "exec_override_procname", mrb_exec_exec_override_procname, MRB_ARGS_ANY());
 
-    mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    DONE;
+  mrb_define_class_method(mrb, ex, "execve", mrb_exec_do_execve, MRB_ARGS_ANY());
+
+  mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+  DONE;
 }
 
 void mrb_mruby_exec_gem_final(mrb_state *mrb)

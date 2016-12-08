@@ -1,5 +1,5 @@
 MRUBY_CONFIG=File.expand_path(ENV["MRUBY_CONFIG"] || ".travis-build_config.rb")
-MRUBY_VERSION=ENV["MRUBY_VERSION"] || "1.2.0"
+MRUBY_VERSION=ENV["MRUBY_VERSION"] || "master"
 
 file :mruby do
   cmd =  "git clone --depth=1 git://github.com/mruby/mruby.git"
