@@ -6,6 +6,8 @@
 ** See Copyright Notice in LICENSE
 */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +17,7 @@
 #include <mruby/data.h>
 #include <mruby/string.h>
 #include <mruby/array.h>
+#include <mruby/hash.h>
 #include <mruby/error.h>
 #include "mrb_exec.h"
 
@@ -76,6 +79,47 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   return mrb_nil_value();
 }
 
+static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
+{
+  mrb_value mrb_env;
+  mrb_value *mrb_argv;
+  mrb_int len, env_len;
+  char **result, **envp;
+  int i;
+
+  mrb_get_args(mrb, "H*", &mrb_env, &mrb_argv, &len);
+  result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
+
+  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+    mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
+  }
+
+  int ai = mrb_gc_arena_save(mrb);
+  mrb_value keys = mrb_hash_keys(mrb, mrb_env);
+  env_len = RARRAY_LEN(keys);
+  envp = (char **)mrb_malloc(mrb, sizeof(char *) * (env_len + 1));
+
+  for (i = 0; i < env_len; ++i) {
+    mrb_value key = mrb_ary_ref(mrb, keys, i);
+    mrb_value value = mrb_hash_get(mrb, mrb_env, key);
+    mrb_value strv = mrb_convert_type(mrb, value, MRB_TT_STRING, "String", "to_str");
+    asprintf(envp, "%s=%s", mrb_string_value_cstr(mrb, &key), mrb_string_value_cstr(mrb, &strv));
+    envp++;
+  }
+  *envp = NULL;
+  envp -= i;
+  mrb_gc_arena_restore(mrb, ai);
+
+  for(int j = 0; j < env_len + 1; j++) {
+    _DEBUGP("[mruby-exec] envp(%i): %s\n", j, envp[j]);
+  }
+
+  execve(result[0], result, envp);
+
+  mrb_sys_fail(mrb, "execve failed");
+  return mrb_nil_value();
+}
+
 static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
 {
   mrb_value *argv;
@@ -106,6 +150,8 @@ void mrb_mruby_exec_gem_init(mrb_state *mrb)
   mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
   mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
   mrb_define_class_method(mrb, ex, "exec_override_procname", mrb_exec_exec_override_procname, MRB_ARGS_ANY());
+
+  mrb_define_class_method(mrb, ex, "execve", mrb_exec_do_execve, MRB_ARGS_ANY());
 
   mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
   DONE;
