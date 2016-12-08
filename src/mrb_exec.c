@@ -11,11 +11,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mruby.h"
-#include "mruby/data.h"
-#include "mruby/string.h"
-#include "mruby/array.h"
-#include "mruby/error.h"
+#include <mruby.h>
+#include <mruby/data.h>
+#include <mruby/string.h>
+#include <mruby/array.h>
+#include <mruby/error.h>
 #include "mrb_exec.h"
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
@@ -25,14 +25,6 @@
 #else
 #define _DEBUGP 1 ? (void) 0 : printf
 #endif
-
-typedef struct {
-  char *dummy;
-} mrb_exec_data;
-
-static const struct mrb_data_type mrb_exec_data_type = {
-  "mrb_exec_data", mrb_free,
-};
 
 static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
 {
