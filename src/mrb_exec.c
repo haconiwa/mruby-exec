@@ -100,15 +100,15 @@ static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
 
 void mrb_mruby_exec_gem_init(mrb_state *mrb)
 {
-    struct RClass *ex;
+  struct RClass *ex;
 
-    ex = mrb_define_module(mrb, "Exec");
-    mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
-    mrb_define_class_method(mrb, ex, "exec_override_procname", mrb_exec_exec_override_procname, MRB_ARGS_ANY());
+  ex = mrb_define_module(mrb, "Exec");
+  mrb_define_class_method(mrb, ex, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+  mrb_define_class_method(mrb, ex, "execv", mrb_exec_do_exec, MRB_ARGS_ANY());
+  mrb_define_class_method(mrb, ex, "exec_override_procname", mrb_exec_exec_override_procname, MRB_ARGS_ANY());
 
-    mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
-    DONE;
+  mrb_define_method(mrb, mrb->kernel_module, "exec", mrb_exec_do_exec, MRB_ARGS_ANY());
+  DONE;
 }
 
 void mrb_mruby_exec_gem_final(mrb_state *mrb)
