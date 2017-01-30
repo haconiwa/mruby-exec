@@ -8,6 +8,7 @@
 
 #define _GNU_SOURCE
 
+// clang-format off
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,13 +21,14 @@
 #include <mruby/hash.h>
 #include <mruby/error.h>
 #include "mrb_exec.h"
+// clang-format on
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
 
 #ifdef DEBUG
 #define _DEBUGP printf
 #else
-#define _DEBUGP 1 ? (void) 0 : printf
+#define _DEBUGP 1 ? (void)0 : printf
 #endif
 
 static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char **result)
@@ -35,13 +37,13 @@ static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char
   char *buf;
   int i;
 
-  if(len < 1) {
+  if (len < 1) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "must have at least 1 argument");
     return -1;
   }
 
   int ai = mrb_gc_arena_save(mrb);
-  for(i = 0; i < len; i++) {
+  for (i = 0; i < len; i++) {
     strv = mrb_convert_type(mrb, array[i], MRB_TT_STRING, "String", "to_str");
     buf = (char *)mrb_string_value_cstr(mrb, &strv);
     *result = buf;
@@ -52,7 +54,7 @@ static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char
   // return to the top of array
   result -= i;
 
-  for(int j = 0; j < len + 1; j++) {
+  for (int j = 0; j < len + 1; j++) {
     _DEBUGP("[mruby-exec] result(%i): %s\n", j, result[j]);
   }
 
@@ -69,7 +71,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   mrb_get_args(mrb, "*", &mrb_argv, &len);
   result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
 
-  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+  if (mrb_value_to_strv(mrb, mrb_argv, len, result) < 0) {
     mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
@@ -90,7 +92,7 @@ static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
   mrb_get_args(mrb, "H*", &mrb_env, &mrb_argv, &len);
   result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
 
-  if(mrb_value_to_strv(mrb, mrb_argv, len, result) < 0){
+  if (mrb_value_to_strv(mrb, mrb_argv, len, result) < 0) {
     mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
@@ -110,7 +112,7 @@ static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
   envp -= i;
   mrb_gc_arena_restore(mrb, ai);
 
-  for(int j = 0; j < env_len + 1; j++) {
+  for (int j = 0; j < env_len + 1; j++) {
     _DEBUGP("[mruby-exec] envp(%i): %s\n", j, envp[j]);
   }
 
@@ -130,7 +132,7 @@ static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
   mrb_get_args(mrb, "z*", &procname, &argv, &len);
   result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
 
-  if(mrb_value_to_strv(mrb, argv, len, result) < 0){
+  if (mrb_value_to_strv(mrb, argv, len, result) < 0) {
     mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
