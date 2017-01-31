@@ -15,6 +15,7 @@ env:
   - MRUBY_VERSION=master
 script:
   - rake clean
+  - rake format
   - rake test
 matrix:
   allow_failures:
