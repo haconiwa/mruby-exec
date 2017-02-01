@@ -34,7 +34,7 @@ assert("Kernel#exec sys fail") do
 
   begin
     # always failed
-    p = Process.fork { exec "/bin/bbaash" }
+    exec "/bin/bbaash"
   rescue => e
     assert_equal(expected_error_message, e.to_s)
   end
