@@ -28,3 +28,14 @@ assert("Kernel#exec") do
   assert_true(p.is_a?(Integer))
   assert_true(status.success?)
 end
+
+assert("Kernel#exec sys fail") do
+  expected_error_message = "sys failed. errno: 2 message: No such file or directory mrbgem message: execv failed"
+
+  begin
+    # always failed
+    exec "/bin/bbaash"
+  rescue => e
+    assert_equal(expected_error_message, e.to_s)
+  end
+end
