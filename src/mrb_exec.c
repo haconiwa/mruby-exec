@@ -67,7 +67,6 @@ static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char
 
   if (len < 1) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "must have at least 1 argument");
-    return -1;
   }
 
   int ai = mrb_gc_arena_save(mrb);
