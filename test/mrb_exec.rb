@@ -30,9 +30,7 @@ assert("Kernel#exec") do
 end
 
 assert("Kernel#exec sys fail") do
-  current_dir = File.expand_path("#{File.dirname(__FILE__)}/..")
-  raised_func_of_file = "#{current_dir}/src/mrb_exec.c:mrb_exec_sys_fail"
-  expected_error_message = "sys failed #{raised_func_of_file} errno: 2 message: No such file or directory mrbgem message: execv failed"
+  expected_error_message = "sys failed. errno: 2 message: No such file or directory mrbgem message: execv failed"
 
   begin
     # always failed

@@ -53,11 +53,10 @@ static void mrb_exec_sys_fail(mrb_state *mrb, int error_no, const char *fmt, ...
     mrb_sys_fail(mrb, err_msg);
   }
 
-  snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "sys failed %s:%s errno: %d message: %s mrbgem message: %s", __FILE__,
-           __func__, error_no, ret, arg_msg);
+  snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "sys failed. errno: %d message: %s mrbgem message: %s", error_no, ret,
+           arg_msg);
   mrb_sys_fail(mrb, err_msg);
 }
-
 
 static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char **result)
 {
