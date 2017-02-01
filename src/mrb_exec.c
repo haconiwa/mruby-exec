@@ -48,7 +48,7 @@ static void mrb_exec_sys_fail(mrb_state *mrb, int error_no, const char *fmt, ...
   va_end(args);
 
   if ((ret = strerror_r(error_no, buf, 1024)) == NULL) {
-    snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "[BUG] strerror_r failed. errno: %d", errno);
+    snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "[BUG] strerror_r failed. errno: %d message: %s", errno, arg_msg);
     mrb_sys_fail(mrb, err_msg);
   }
 
