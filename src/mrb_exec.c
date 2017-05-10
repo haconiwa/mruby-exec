@@ -61,7 +61,7 @@ static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char
 {
   mrb_value strv;
   char *buf;
-  int i;
+  int i, j;
 
   if (len < 1) {
     mrb_raise(mrb, E_ARGUMENT_ERROR, "must have at least 1 argument");
@@ -79,7 +79,7 @@ static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char
   // return to the top of array
   result -= i;
 
-  for (int j = 0; j < len + 1; j++) {
+  for (j = 0; j < len + 1; j++) {
     _DEBUGP("[mruby-exec] result(%i): %s\n", j, result[j]);
   }
 
