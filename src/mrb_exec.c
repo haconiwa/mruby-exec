@@ -113,7 +113,7 @@ static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
   mrb_value *mrb_argv;
   mrb_int len, env_len;
   char **result, **envp;
-  int i;
+  int i, j;
 
   mrb_get_args(mrb, "H*", &mrb_env, &mrb_argv, &len);
   result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
@@ -138,7 +138,7 @@ static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
   envp -= i;
   mrb_gc_arena_restore(mrb, ai);
 
-  for (int j = 0; j < env_len + 1; j++) {
+  for (j = 0; j < env_len + 1; j++) {
     _DEBUGP("[mruby-exec] envp(%i): %s\n", j, envp[j]);
   }
 
