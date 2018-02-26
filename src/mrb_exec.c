@@ -97,11 +97,13 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   result = (char **)mrb_malloc(mrb, sizeof(char *) * (len + 1));
 
   if (mrb_value_to_strv(mrb, mrb_argv, len, result) < 0) {
+    mrb_free(mrb, result);
     mrb_sys_fail(mrb, "[BUG] mrb_value_to_strv failed");
   }
 
   execv(result[0], result);
 
+  mrb_free(mrb, result);
   mrb_exec_sys_fail(mrb, errno, "execv failed");
 
   return mrb_nil_value();
