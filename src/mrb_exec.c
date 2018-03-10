@@ -35,28 +35,6 @@
 
 #define SYS_FAIL_MESSAGE_LENGTH 2048
 
-static void mrb_exec_sys_fail(mrb_state *mrb, int error_no, const char *fmt, ...)
-{
-  char buf[1024];
-  char arg_msg[SYS_FAIL_MESSAGE_LENGTH];
-  char err_msg[SYS_FAIL_MESSAGE_LENGTH];
-  char *ret;
-  va_list args;
-
-  va_start(args, fmt);
-  vsnprintf(arg_msg, SYS_FAIL_MESSAGE_LENGTH, fmt, args);
-  va_end(args);
-
-  if ((ret = strerror_r(error_no, buf, 1024)) == NULL) {
-    snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "[BUG] strerror_r failed. errno: %d message: %s", errno, arg_msg);
-    mrb_sys_fail(mrb, err_msg);
-  }
-
-  snprintf(err_msg, SYS_FAIL_MESSAGE_LENGTH, "sys failed. errno: %d message: %s mrbgem message: %s", error_no, ret,
-           arg_msg);
-  mrb_sys_fail(mrb, err_msg);
-}
-
 static int mrb_value_to_strv(mrb_state *mrb, mrb_value *array, mrb_int len, char **result)
 {
   mrb_value strv;
@@ -104,7 +82,7 @@ static mrb_value mrb_exec_do_exec(mrb_state *mrb, mrb_value self)
   execv(result[0], result);
 
   mrb_free(mrb, result);
-  mrb_exec_sys_fail(mrb, errno, "execv failed");
+  mrb_sys_fail(mrb, "execv failed");
 
   return mrb_nil_value();
 }
@@ -146,7 +124,7 @@ static mrb_value mrb_exec_do_execve(mrb_state *mrb, mrb_value self)
 
   execve(result[0], result, envp);
 
-  mrb_exec_sys_fail(mrb, errno, "execve failed");
+  mrb_sys_fail(mrb, "execve failed");
 
   return mrb_nil_value();
 }
@@ -169,7 +147,7 @@ static mrb_value mrb_exec_exec_override_procname(mrb_state *mrb, mrb_value self)
   result[0] = procname;
   execv(execname, result);
 
-  mrb_exec_sys_fail(mrb, errno, "execv failed");
+  mrb_sys_fail(mrb, "execv failed");
 
   return mrb_nil_value();
 }
