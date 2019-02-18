@@ -30,7 +30,7 @@ assert("Kernel#exec") do
 end
 
 assert("Kernel#exec sys fail") do
-  expected_error_message = "sys failed. errno: 2 message: No such file or directory mrbgem message: execv failed"
+  expected_error_message = "No such file or directory - execv failed"
 
   begin
     # always failed
