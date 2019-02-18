@@ -11,7 +11,8 @@ compiler:
   - gcc
   - clang
 env:
-  - MRUBY_VERSION=1.2.0
+  - MRUBY_VERSION=1.4.1
+  - MRUBY_VERSION=2.0.0
   - MRUBY_VERSION=master
 script:
   - rake clean
@@ -19,6 +20,7 @@ script:
   - rake test
 matrix:
   allow_failures:
+    - env: MRUBY_VERSION=1.4.1
     - env: MRUBY_VERSION=master
 branches:
   only:
